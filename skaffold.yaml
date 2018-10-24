@@ -1,0 +1,31 @@
+apiVersion: skaffold/v1alpha2
+kind: Config
+build:
+  tagPolicy:
+    envTemplate:
+      template: "{{.DOCKER_REGISTRY}}/rainer-maierhofer/go-sample:{{.VERSION}}"
+  artifacts:
+  - imageName: changeme
+    workspace: .
+    docker: {}
+  local: {}
+deploy:
+  kubectl:
+    manifests:
+profiles:
+- name: dev
+  build:
+    tagPolicy:
+      envTemplate:
+        template: "{{.DOCKER_REGISTRY}}/rainer-maierhofer/go-sample:{{.DIGEST_HEX}}"
+    artifacts:
+    - docker: {}
+    local: {}
+  deploy:
+    helm:
+      releases:
+      - name: go-sample
+        chartPath: charts/go-sample
+        setValueTemplates:
+          image.repository: "{{.DOCKER_REGISTRY}}/rainer-maierhofer/go-sample"
+          image.tag: "{{.DIGEST_HEX}}"
